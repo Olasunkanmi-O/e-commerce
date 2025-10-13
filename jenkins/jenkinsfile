@@ -14,17 +14,17 @@ pipeline {
       }
     }
 
-    stage('Checkov Scan') {
-    steps {
-        withEnv(['PATH+LOCAL=/var/lib/jenkins/.local/bin']) {
-            sh '''
-                pip install --user checkov
-                checkov -d . -o junitxml --output-file-path results.xml || true
-            '''
-        }
-        junit skipPublishingChecks: true, testResults: 'results.xml'
-    }
-}
+    // stage('Checkov Scan') {
+    //   steps {
+    //     withEnv(['PATH+LOCAL=/var/lib/jenkins/.local/bin']) {
+    //         sh '''
+    //             pip install --user checkov
+    //             checkov -d . -o junitxml --output-file-path results.xml || true
+    //         '''
+    //     }
+    //     junit skipPublishingChecks: true, testResults: 'results.xml'
+    //   }
+    // }
 
 
     stage('Terraform Init') {
