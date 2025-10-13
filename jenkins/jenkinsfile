@@ -1,0 +1,78 @@
+pipeline {
+  agent any
+  tools { terraform 'terraform' }
+
+  parameters {
+    choice(name: 'action', choices: ['apply', 'destroy'], description: 'Terraform action to perform')
+    choice(name: 'env', choices: ['dev', 'stage', 'prod'], description: 'Environment to deploy')
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Checkov') {
+      steps {
+        sh '''
+          pip install --upgrade pip checkov
+          checkov -d . -o junitxml --output-file-path results.xml || true
+        '''
+        junit skipPublishingChecks: true, testResults: 'results.xml'
+      }
+    }
+
+    stage('Terraform Init') {
+      steps {
+        sh 'terraform init'
+      }
+    }
+
+    stage('Terraform Workspace') {
+      steps {
+        sh '''
+          terraform workspace select ${env} || terraform workspace new ${env}
+        '''
+      }
+    }
+
+    stage('Terraform Format & Validate') {
+      steps {
+        sh 'terraform fmt --recursive'
+        sh 'terraform validate'
+      }
+    }
+
+    stage('Terraform Plan') {
+      steps {
+        sh 'terraform plan -out=tfplan'
+        sh 'terraform show -no-color tfplan > plan.txt'
+        archiveArtifacts artifacts: 'plan.txt', fingerprint: true
+      }
+    }
+
+    stage('Terraform Action') {
+      steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
+          sh "terraform ${params.action} -auto-approve"
+        }
+      }
+    }
+
+    stage ('Trigger Kops Cluster Setup'){
+      when {
+        expression { params.action == 'apply' }
+      }
+      steps {
+        script {
+          echo "Infrastructure ready. Triggering Kops cluster pipeline..."
+          build job: 'kops-cluster-pipeline', wait: true, parameters: [
+            string(name: 'ACTION', value: 'create')
+          ]
+        }
+      }
+    }
+  }
+}

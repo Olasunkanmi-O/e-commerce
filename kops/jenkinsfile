@@ -1,0 +1,43 @@
+pipeline {
+  agent any
+
+  parameters {
+    choice(name: 'ACTION', choices: ['create', 'validate', 'delete'], description: 'Cluster action to perform')
+  }
+
+  environment {
+    KOPS_STATE_STORE = "s3://my-kops-state-store"
+    CLUSTER_NAME = "ecommerce.k8s.local"
+    DNS_ZONE = "mydomain.com"
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Run Kops Action') {
+      steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
+          script {
+            if (params.ACTION == 'create') {
+              sh 'bash create_cluster.sh'
+            } else if (params.ACTION == 'validate') {
+              sh 'bash validate_cluster.sh'
+            } else if (params.ACTION == 'delete') {
+              sh 'bash delete_cluster.sh'
+            }
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      echo "Kops pipeline complete for action: ${params.ACTION}"
+    }
+  }
+}
