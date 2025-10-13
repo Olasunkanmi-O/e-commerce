@@ -99,7 +99,7 @@ resource "aws_iam_instance_profile" "ssm_instance_profile" {
 
 # Create a security group for Jenkins server allowing inbound traffic on port 8080 and all outbound traffic
 resource "aws_security_group" "jenkins_sg" {
-  name        = "${local.name}-jenkins-sg"
+  name        = "${local.name}-sg"
   description = "Jenkins server security group"
   vpc_id      = module.vpc.vpc_id
 
@@ -157,7 +157,7 @@ resource "aws_instance" "jenkins-server" {
   }
 
   tags = {
-    Name = "${local.name}-jenkins-server"
+    Name = "${local.name}-server"
   }
 }
 
@@ -219,43 +219,43 @@ resource "aws_acm_certificate_validation" "cert_validation" {
 }
 
 
-# Create security group for Jenkins ELB allowing HTTP and HTTPS traffic
-resource "aws_security_group" "jenkins_elb_sg" {
-  name        = "${local.name}-jenkins-elb-sg"
-  description = "Allow HTTP/HTTPS traffic to Jenkins ELB"
-  vpc_id      = module.vpc.vpc_id
+# # Create security group for Jenkins ELB allowing HTTP and HTTPS traffic
+# resource "aws_security_group" "jenkins_elb_sg" {
+#   name        = "${local.name}-jenkins-elb-sg"
+#   description = "Allow HTTP/HTTPS traffic to Jenkins ELB"
+#   vpc_id      = module.vpc.vpc_id
 
-  # Jenkins default HTTP port
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
-    description = "Allow inbound HTTP traffic on port 8080"
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#   # Jenkins default HTTP port
+#   ingress {
+#     from_port   = 8080
+#     to_port     = 8080
+#     description = "Allow inbound HTTP traffic on port 8080"
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
 
-  # HTTPS traffic
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    description = "Allow inbound HTTPS traffic on port 443"
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#   # HTTPS traffic
+#   ingress {
+#     from_port   = 443
+#     to_port     = 443
+#     description = "Allow inbound HTTPS traffic on port 443"
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
 
-  # Allow all outbound traffic
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound traffic"
-  }
+#   # Allow all outbound traffic
+#   egress {
+#     from_port   = 0
+#     to_port     = 0
+#     protocol    = "-1"
+#     cidr_blocks = ["0.0.0.0/0"]
+#     description = "Allow all outbound traffic"
+#   }
 
-  tags = {
-    Name = "${local.name}-jenkins-elb-sg"
-  }
-}
+#   tags = {
+#     Name = "${local.name}-jenkins-elb-sg"
+#   }
+# }
 
 
 # Fetch availability zones for the region (used for ELB placement)
@@ -381,6 +381,5 @@ resource "aws_route53_record" "jenkins" {
   name                   = aws_lb.jenkins_alb.dns_name
   zone_id                = aws_lb.jenkins_alb.zone_id
   evaluate_target_health = true
-}
-
+ }
 }
