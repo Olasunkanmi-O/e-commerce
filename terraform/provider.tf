@@ -7,7 +7,7 @@ terraform {
   backend "s3" {
     bucket       = "ecommerce-project-1232"
     use_lockfile = true
-    key          = "kops/terraform.tfstate"
+    key          = "infra-build/kops.tfstate"
     region       = "eu-west-2"
     encrypt      = true
 
