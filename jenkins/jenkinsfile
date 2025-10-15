@@ -4,7 +4,10 @@ pipeline {
 
   parameters {
     choice(name: 'action', choices: ['apply', 'destroy'], description: 'Terraform action to perform')
-    choice(name: 'env', choices: ['dev', 'stage', 'prod'], description: 'Environment to deploy')
+  }
+
+  environment {
+    TERRAFORM_DIR = 'terraform'
   }
 
   stages {
@@ -14,57 +17,40 @@ pipeline {
       }
     }
 
-    // stage('Checkov Scan') {
-    //   steps {
-    //     withEnv(['PATH+LOCAL=/var/lib/jenkins/.local/bin']) {
-    //         sh '''
-    //             pip install --user checkov
-    //             checkov -d . -o junitxml --output-file-path results.xml || true
-    //         '''
-    //     }
-    //     junit skipPublishingChecks: true, testResults: 'results.xml'
-    //   }
-    // }
-
-
-    stage('Terraform Init') {
+    stage('Terraform Operations') {
       steps {
-        sh 'terraform init'
+        dir("${TERRAFORM_DIR}") {
+          sh '''
+            terraform init
+            terraform fmt --recursive
+            terraform validate
+            terraform plan -out=tfplan
+            terraform show -no-color tfplan > plan.txt
+          '''
+        }
+        archiveArtifacts artifacts: "${TERRAFORM_DIR}/plan.txt", fingerprint: true
       }
     }
 
-    stage('Terraform Workspace') {
+    stage('Terraform Apply or Destroy') {
       steps {
-        sh '''
-          terraform workspace select ${env} || terraform workspace new ${env}
-        '''
-      }
-    }
-
-    stage('Terraform Format & Validate') {
-      steps {
-        sh 'terraform fmt --recursive'
-        sh 'terraform validate'
-      }
-    }
-
-    stage('Terraform Plan') {
-      steps {
-        sh 'terraform plan -out=tfplan'
-        sh 'terraform show -no-color tfplan > plan.txt'
-        archiveArtifacts artifacts: 'plan.txt', fingerprint: true
-      }
-    }
-
-    stage('Terraform Action') {
-      steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
-          sh "terraform ${params.action} -auto-approve"
+        dir("${TERRAFORM_DIR}") {
+          withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
+            script {
+              if (params.action == 'apply') {
+                echo "Running Terraform apply..."
+                sh "terraform apply -auto-approve"
+              } else if (params.action == 'destroy') {
+                echo "Running Terraform destroy..."
+                sh "terraform destroy -auto-approve"
+              }
+            }
+          }
         }
       }
     }
 
-    stage ('Trigger Kops Cluster Setup'){
+    stage('Trigger Kops Cluster Setup') {
       when {
         expression { params.action == 'apply' }
       }

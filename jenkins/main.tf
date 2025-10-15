@@ -85,11 +85,11 @@ resource "aws_iam_role_policy_attachment" "ssm-policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-# Attach AdministratorAccess policy to Jenkins IAM role
-resource "aws_iam_role_policy_attachment" "jenkins-admin-role-attachment" {
-  role       = aws_iam_role.ssm-jenkins-role.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-}
+# # Attach AdministratorAccess policy to Jenkins IAM role
+# resource "aws_iam_role_policy_attachment" "jenkins-admin-role-attachment" {
+#   role       = aws_iam_role.ssm-jenkins-role.name
+#   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+# }
 
 # Create instance profile for Jenkins server
 resource "aws_iam_instance_profile" "ssm_instance_profile" {
@@ -217,46 +217,6 @@ resource "aws_acm_certificate_validation" "cert_validation" {
     aws_route53_record.acm_validation_record
   ]
 }
-
-
-# # Create security group for Jenkins ELB allowing HTTP and HTTPS traffic
-# resource "aws_security_group" "jenkins_elb_sg" {
-#   name        = "${local.name}-jenkins-elb-sg"
-#   description = "Allow HTTP/HTTPS traffic to Jenkins ELB"
-#   vpc_id      = module.vpc.vpc_id
-
-#   # Jenkins default HTTP port
-#   ingress {
-#     from_port   = 8080
-#     to_port     = 8080
-#     description = "Allow inbound HTTP traffic on port 8080"
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-#   # HTTPS traffic
-#   ingress {
-#     from_port   = 443
-#     to_port     = 443
-#     description = "Allow inbound HTTPS traffic on port 443"
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-#   # Allow all outbound traffic
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#     description = "Allow all outbound traffic"
-#   }
-
-#   tags = {
-#     Name = "${local.name}-jenkins-elb-sg"
-#   }
-# }
-
 
 # Fetch availability zones for the region (used for ELB placement)
 data "aws_availability_zones" "available" {}
