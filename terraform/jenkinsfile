@@ -18,23 +18,24 @@ pipeline {
     }
 
     stage('Terraform Operations') {
-      dir("${TERRAFORM_ENV}"){
-        steps {        
+      steps {
+        dir("${TERRAFORM_ENV}") {
           sh '''
             terraform init
             terraform fmt --recursive
             terraform validate
             terraform plan -out=tfplan
             terraform show -no-color tfplan > plan.txt
-          '''      
+          '''
           archiveArtifacts artifacts: "plan.txt", fingerprint: true
         }
-      }  
+      }
     }
 
+
     stage('Terraform Apply or Destroy') {
-      dir("${TERRAFROM_ENV}"){
-        steps {        
+      steps {
+        dir("${TERRAFORM_ENV}") {
           withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
             script {
               if (params.action == 'apply') {
@@ -49,6 +50,8 @@ pipeline {
         }
       }
     }
+
+
 
     stage('Trigger Kops Cluster Setup') {
       when {
