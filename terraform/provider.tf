@@ -1,7 +1,6 @@
 # create aws provider
 provider "aws" {
-  region = "eu-west-2"
-  #profile = "pet-adoption"
+  region = "eu-west-2"  
 }
 
 terraform {
@@ -11,7 +10,6 @@ terraform {
     key          = "kops/terraform.tfstate"
     region       = "eu-west-2"
     encrypt      = true
-    #profile = "pet-adoption"
 
   }
 }
