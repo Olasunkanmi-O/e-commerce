@@ -6,7 +6,6 @@ pipeline {
     choice(name: 'action', choices: ['apply', 'destroy'], description: 'Terraform action to perform')
   }
 
-  
   stages {
     stage('Checkout') {
       steps {
@@ -24,7 +23,7 @@ pipeline {
           terraform show -no-color tfplan > plan.txt
         '''
       }
-        archiveArtifacts artifacts: "${TERRAFORM_DIR}/plan.txt", fingerprint: true
+      archiveArtifacts artifacts: "plan.txt", fingerprint: true
     }
 
     stage('Terraform Apply or Destroy') {
