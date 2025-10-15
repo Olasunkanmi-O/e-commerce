@@ -21,9 +21,9 @@ pipeline {
           terraform validate
           terraform plan -out=tfplan
           terraform show -no-color tfplan > plan.txt
-        '''
+        '''      
+        archiveArtifacts artifacts: "plan.txt", fingerprint: true
       }
-      archiveArtifacts artifacts: "plan.txt", fingerprint: true
     }
 
     stage('Terraform Apply or Destroy') {
