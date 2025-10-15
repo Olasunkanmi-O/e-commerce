@@ -6,6 +6,10 @@ pipeline {
     choice(name: 'action', choices: ['apply', 'destroy'], description: 'Terraform action to perform')
   }
 
+  environment {
+    TERRAFORM_ENV = 'terraform'
+  }
+
   stages {
     stage('Checkout') {
       steps {
@@ -14,28 +18,32 @@ pipeline {
     }
 
     stage('Terraform Operations') {
-      steps {        
-        sh '''
-          terraform init
-          terraform fmt --recursive
-          terraform validate
-          terraform plan -out=tfplan
-          terraform show -no-color tfplan > plan.txt
-        '''      
-        archiveArtifacts artifacts: "plan.txt", fingerprint: true
-      }
+      dir("${TERRAFORM_ENV}"){
+        steps {        
+          sh '''
+            terraform init
+            terraform fmt --recursive
+            terraform validate
+            terraform plan -out=tfplan
+            terraform show -no-color tfplan > plan.txt
+          '''      
+          archiveArtifacts artifacts: "plan.txt", fingerprint: true
+        }
+      }  
     }
 
     stage('Terraform Apply or Destroy') {
-      steps {        
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
-          script {
-            if (params.action == 'apply') {
-              echo "Running Terraform apply..."
-              sh "terraform apply -auto-approve"
-            } else if (params.action == 'destroy') {
-              echo "Running Terraform destroy..."
-              sh "terraform destroy -auto-approve"
+      dir("${TERRAFROM_ENV}"){
+        steps {        
+          withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
+            script {
+              if (params.action == 'apply') {
+                echo "Running Terraform apply..."
+                sh "terraform apply -auto-approve"
+              } else if (params.action == 'destroy') {
+                echo "Running Terraform destroy..."
+                sh "terraform destroy -auto-approve"
+              }
             }
           }
         }
