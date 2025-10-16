@@ -1,9 +1,13 @@
 #!/bin/bash
 set -e
 
-KOPS_STATE_STORE=${KOPS_STATE_STORE:-s3://my-kops-state-store}
-CLUSTER_NAME=${CLUSTER_NAME:-ecommerce.k8s.local}
-DNS_ZONE=${DNS_ZONE:-mydomain.com}
+# KOPS_STATE_STORE = "s3://ecommerce-kops-state-1232"
+# CLUSTER_NAME = "ecommerce.alasoasiko.co.uk"
+# DNS_ZONE = "ecommerce.alasoasiko.co.uk"
+
+KOPS_STATE_STORE=${KOPS_STATE_STORE:-s3://ecommerce-kops-state-1232}
+CLUSTER_NAME=${CLUSTER_NAME:-ecommerce.alasoasiko.co.uk}
+DNS_ZONE=${DNS_ZONE:-ecommerce.alasoasiko.co.uk}
 ZONES=${ZONES:-eu-west-2a,eu-west-2b}
 NODE_COUNT=${NODE_COUNT:-2}
 NODE_SIZE=${NODE_SIZE:-t3.medium}

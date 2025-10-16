@@ -21,7 +21,7 @@ pipeline {
       steps {
         dir("${TERRAFORM_ENV}") {
           sh '''
-            terraform init -reconfigure
+            terraform init
             terraform fmt --recursive
             terraform validate
             terraform plan -out=tfplan

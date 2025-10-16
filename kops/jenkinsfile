@@ -6,9 +6,9 @@ pipeline {
   }
 
   environment {
-    KOPS_STATE_STORE = "s3://my-kops-state-store"
-    CLUSTER_NAME = "ecommerce.k8s.local"
-    DNS_ZONE = "mydomain.com"
+    KOPS_STATE_STORE = "s3://ecommerce-kops-state-1232"
+    CLUSTER_NAME = "ecommerce.alasoasiko.co.uk"
+    DNS_ZONE = "ecommerce.alasoasiko.co.uk"
   }
 
   stages {

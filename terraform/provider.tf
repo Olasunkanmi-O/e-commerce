@@ -10,6 +10,6 @@ terraform {
     key          = "infra-build/kops.tfstate"
     region       = "eu-west-2"
     encrypt      = true
-
+  
   }
 }

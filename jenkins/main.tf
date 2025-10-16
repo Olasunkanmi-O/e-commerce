@@ -85,11 +85,41 @@ resource "aws_iam_role_policy_attachment" "ssm-policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-# # Attach AdministratorAccess policy to Jenkins IAM role
-# resource "aws_iam_role_policy_attachment" "jenkins-admin-role-attachment" {
-#   role       = aws_iam_role.ssm-jenkins-role.name
-#   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-# }
+# 1. Define the IAM Policy for S3 Access
+resource "aws_iam_policy" "tf_backend_access_policy" {
+  name        = "${local.name}-tf-backend-access"
+  description = "Allows Jenkins Role to access Terraform S3 state"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      # S3 Permissions for State File (Replace bucket name)
+      {
+        "Sid": "S3StateBucketAccess",
+        "Effect": "Allow",
+        "Action": [
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ],
+        "Resource": [
+          "arn:aws:s3:::ecommerce-project-1232",
+          "arn:aws:s3:::ecommerce-project-1232/infra-build/*" 
+        ]
+      }
+    ]
+  })
+}
+
+# 2. Attach the new policy to your existing Jenkins Role
+# The policy attachment ensures the Jenkins server's role now has both SSM and S3 permissions.
+resource "aws_iam_role_policy_attachment" "tf_backend_policy_attachment" {
+  role       = aws_iam_role.ssm-jenkins-role.name
+  policy_arn = aws_iam_policy.tf_backend_access_policy.arn
+}
+
+
 
 # Create instance profile for Jenkins server
 resource "aws_iam_instance_profile" "ssm_instance_profile" {
@@ -342,4 +372,17 @@ resource "aws_route53_record" "jenkins" {
   zone_id                = aws_lb.jenkins_alb.zone_id
   evaluate_target_health = true
  }
+}
+
+# create Route 53 record for kops  
+resource "aws_route53_zone" "kops_zone" {
+  name = "ecommerce.${var.domain_name}"
+}
+
+resource "aws_route53_record" "kops_ns_delegate" {
+  zone_id = data.aws_route53_zone.acp_zone.id
+  name    = "ecommerce.${var.domain_name}"
+  type    = "NS"
+  ttl     = 300
+  records = aws_route53_zone.kops_zone.name_servers
 }
