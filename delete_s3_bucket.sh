@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-# # echo "creating S3 bucket"
-# cd Jenkins
-# terraform init
-# terraform destroy -auto-approve
+# echo "creating S3 bucket"
+cd Jenkins
+terraform init
+terraform destroy -auto-approve
 
 # Using the same variables as ones used for creation
 BUCKET_NAME="ecommerce-kops-state-1232"
