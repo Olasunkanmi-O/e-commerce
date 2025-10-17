@@ -21,8 +21,10 @@ pipeline {
       steps {
         dir("${TERRAFORM_ENV}") {
           sh '''
-            terraform init
+            rm -rf .terraform .terraform.lock.hcl
+            terraform init -reconfigure
             terraform fmt --recursive
+            terraform validate
             terraform plan -out=tfplan
             terraform show -no-color tfplan > plan.txt
           '''
