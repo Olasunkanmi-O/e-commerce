@@ -6,8 +6,8 @@ set -e
 KOPS_STATE_STORE=${KOPS_STATE_STORE:-s3://ecommerce-kops-state-1232}
 CLUSTER_NAME=${CLUSTER_NAME:-ecommerce.alasoasiko.co.uk}
 DNS_ZONE=${DNS_ZONE:-ecommerce.alasoasiko.co.uk}
-ZONES=${ZONES:-eu-west-2a,eu-west-2b}
-NODE_COUNT=${NODE_COUNT:-2}
+ZONES=${ZONES:-eu-west-2a,eu-west-2b,eu-west-2c}
+NODE_COUNT=${NODE_COUNT:-3}
 NODE_SIZE=${NODE_SIZE:-t3.medium}
 MASTER_SIZE=${MASTER_SIZE:-t3.medium}
 SSH_KEY_PATH=${SSH_KEY_PATH:-~/.ssh/id_rsa.pub}
